@@ -1,24 +1,27 @@
 /**
-   This file is part of Waarp Project.
-
-   Copyright 2009, Frederic Bregier, and individual contributors by the @author
-   tags. See the COPYRIGHT.txt in the distribution for a full listing of
-   individual contributors.
-
-   All Waarp Project is free software: you can redistribute it and/or 
-   modify it under the terms of the GNU General Public License as published 
-   by the Free Software Foundation, either version 3 of the License, or
-   (at your option) any later version.
-
-   Waarp is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with Waarp .  If not, see <http://www.gnu.org/licenses/>.
+ * This file is part of Waarp Project.
+ * <p>
+ * Copyright 2009, Frederic Bregier, and individual contributors by the @author tags. See the COPYRIGHT.txt in the
+ * distribution for a full listing of individual contributors.
+ * <p>
+ * All Waarp Project is free software: you can redistribute it and/or modify it under the terms of the GNU General
+ * Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ * <p>
+ * Waarp is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+ * <p>
+ * You should have received a copy of the GNU General Public License along with Waarp .  If not, see
+ * <http://www.gnu.org/licenses/>.
  */
 package org.waarp.uip;
+
+import org.waarp.common.crypto.Blowfish;
+import org.waarp.common.crypto.Des;
+import org.waarp.common.crypto.KeyObject;
+import org.waarp.common.exception.CryptoException;
+import org.waarp.common.utility.SystemPropertyUtil;
+import org.waarp.common.utility.WaarpStringUtils;
 
 import java.io.BufferedReader;
 import java.io.DataInputStream;
@@ -28,13 +31,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import org.waarp.common.crypto.Blowfish;
-import org.waarp.common.crypto.Des;
-import org.waarp.common.crypto.KeyObject;
-import org.waarp.common.exception.CryptoException;
-import org.waarp.common.utility.SystemPropertyUtil;
-import org.waarp.common.utility.WaarpStringUtils;
-
 /**
  * Console Command Line Main class to provide Password Management for GoldenGate Products.
  *
@@ -42,19 +38,19 @@ import org.waarp.common.utility.WaarpStringUtils;
  *
  */
 public class WaarpPassword {
+    static final String HELPOPTIONS = "Options available\r\n" +
+                                      "* -ki file to specify the Key File by default\r\n" +
+                                      "* -ko file to specify a new Key File to build and save\r\n\r\n" +
+                                      "* -des to specify DES format (default)\r\n" +
+                                      "* -blf to specify BlowFish format\r\n\r\n" +
+                                      "* -pi file to specify a GGP File by default(password)\r\n" +
+                                      "* -pwd to specify a clear ggp password as entry\r\n" +
+                                      "* -cpwd to specify a crypted ggp password as entry\r\n" +
+                                      "* -po file to specify a GGP File as output for the password\r\n" +
+                                      "* -clear to specify uncrypted password shown as clear text";
+    static final String GGPEXTENSION = "ggp";
     static boolean desModel = true;
     static boolean clearPasswordView = false;
-    static final String HELPOPTIONS = "Options available\r\n" +
-            "* -ki file to specify the Key File by default\r\n" +
-            "* -ko file to specify a new Key File to build and save\r\n\r\n" +
-            "* -des to specify DES format (default)\r\n" +
-            "* -blf to specify BlowFish format\r\n\r\n" +
-            "* -pi file to specify a GGP File by default(password)\r\n" +
-            "* -pwd to specify a clear ggp password as entry\r\n" +
-            "* -cpwd to specify a crypted ggp password as entry\r\n" +
-            "* -po file to specify a GGP File as output for the password\r\n" +
-            "* -clear to specify uncrypted password shown as clear text";
-    static final String GGPEXTENSION = "ggp";
     static String ki = null;
     static String ko = null;
     static String pi = null;
@@ -68,6 +64,41 @@ public class WaarpPassword {
     private String cryptedPassword = null;
 
     private KeyObject currentKey;
+
+    public WaarpPassword() throws Exception {
+        if (desModel) {
+            currentKey = new Des();
+        } else {
+            currentKey = new Blowfish();
+        }
+        if (ko != null) {
+            createNewKey();
+            saveKey(new File(ko));
+        }
+        if (ki != null) {
+            loadKey(new File(ki));
+        }
+        if (pi != null) {
+            setPasswordFile(new File(pi));
+            loadPasswordFile();
+        }
+        if (pwd != null) {
+            setClearPassword(pwd);
+        }
+        if (cpwd != null) {
+            setCryptedPassword(cpwd);
+        }
+        if (po != null) {
+            setPasswordFile(new File(po));
+            savePasswordFile();
+        }
+        if (clearPassword != null) {
+            if (clearPasswordView) {
+                System.err.println("ClearPwd: " + getClearPassword());
+            }
+            System.err.println("CryptedPwd: " + getCryptedPassword());
+        }
+    }
 
     /**
      * @param args
@@ -111,7 +142,8 @@ public class WaarpPassword {
             return false;
         }
         if (!SystemPropertyUtil.isFileEncodingCorrect()) {
-            System.err.println("Issue while trying to set UTF-8 as default file encoding: use -Dfile.encoding=UTF-8 as java command argument\n"+
+            System.err.println(
+                    "Issue while trying to set UTF-8 as default file encoding: use -Dfile.encoding=UTF-8 as java command argument\n" +
                     "Currently file.encoding is: " + SystemPropertyUtil.get(SystemPropertyUtil.FILE_ENCODING));
             return false;
         }
@@ -193,41 +225,6 @@ public class WaarpPassword {
         return true;
     }
 
-    public WaarpPassword() throws Exception {
-        if (desModel) {
-            currentKey = new Des();
-        } else {
-            currentKey = new Blowfish();
-        }
-        if (ko != null) {
-            createNewKey();
-            saveKey(new File(ko));
-        }
-        if (ki != null) {
-            loadKey(new File(ki));
-        }
-        if (pi != null) {
-            setPasswordFile(new File(pi));
-            loadPasswordFile();
-        }
-        if (pwd != null) {
-            setClearPassword(pwd);
-        }
-        if (cpwd != null) {
-            setCryptedPassword(cpwd);
-        }
-        if (po != null) {
-            setPasswordFile(new File(po));
-            savePasswordFile();
-        }
-        if (clearPassword != null) {
-            if (clearPasswordView) {
-                System.err.println("ClearPwd: " + getClearPassword());
-            }
-            System.err.println("CryptedPwd: " + getCryptedPassword());
-        }
-    }
-
     private String readString() {
         String read = "";
         InputStreamReader input = new InputStreamReader(System.in, WaarpStringUtils.UTF8);
@@ -243,7 +240,7 @@ public class WaarpPassword {
 
     /**
      * Create a new Key but do not save it on file
-     * 
+     *
      * @throws Exception
      */
     public void createNewKey() throws Exception {
@@ -306,17 +303,6 @@ public class WaarpPassword {
     }
 
     /**
-     * Set the new password and its crypted value
-     * 
-     * @param passwd
-     * @throws Exception
-     */
-    public void setClearPassword(String passwd) throws Exception {
-        clearPassword = passwd;
-        cryptedPassword = currentKey.cryptToHex(clearPassword);
-    }
-
-    /**
      * @return the passwordFile
      */
     public File getPasswordFile() {
@@ -334,7 +320,7 @@ public class WaarpPassword {
 
     /**
      * Save the Crypted Paswword to the File
-     * 
+     *
      * @throws IOException
      */
     public void savePasswordFile() throws IOException {
@@ -349,7 +335,7 @@ public class WaarpPassword {
 
     /**
      * Load the crypted password from the file
-     * 
+     *
      * @throws Exception
      */
     public void loadPasswordFile() throws Exception {
@@ -397,6 +383,17 @@ public class WaarpPassword {
      */
     public String getClearPassword() {
         return clearPassword;
+    }
+
+    /**
+     * Set the new password and its crypted value
+     *
+     * @param passwd
+     * @throws Exception
+     */
+    public void setClearPassword(String passwd) throws Exception {
+        clearPassword = passwd;
+        cryptedPassword = currentKey.cryptToHex(clearPassword);
     }
 
 }

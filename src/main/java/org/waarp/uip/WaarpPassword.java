@@ -35,7 +35,6 @@ import java.io.InputStreamReader;
  * Console Command Line Main class to provide Password Management for GoldenGate Products.
  *
  * @author Frederic Bregier
- *
  */
 public class WaarpPassword {
     static final String HELPOPTIONS = "Options available\r\n" +
@@ -102,6 +101,7 @@ public class WaarpPassword {
 
     /**
      * @param args
+     *
      * @throws Exception
      */
     public static void main(String[] args) throws Exception {
@@ -255,9 +255,8 @@ public class WaarpPassword {
     }
 
     /**
+     * @param file source file
      *
-     * @param file
-     *            source file
      * @throws CryptoException
      */
     public void loadKey(File file) throws CryptoException {
@@ -270,9 +269,8 @@ public class WaarpPassword {
     }
 
     /**
+     * @param file destination file, if null previously set file is used
      *
-     * @param file
-     *            destination file, if null previously set file is used
      * @throws CryptoException
      */
     public void saveKey(File file) throws CryptoException {
@@ -287,7 +285,6 @@ public class WaarpPassword {
     }
 
     /**
-     *
      * @return True if the associated key is ready
      */
     public boolean keyReady() {
@@ -295,7 +292,6 @@ public class WaarpPassword {
     }
 
     /**
-     *
      * @return The File associated with the current Key
      */
     public File getKeyFile() {
@@ -310,8 +306,8 @@ public class WaarpPassword {
     }
 
     /**
-     * @param passwordFile
-     *            the passwordFile to set
+     * @param passwordFile the passwordFile to set
+     *
      * @throws IOException
      */
     public void setPasswordFile(File passwordFile) {
@@ -369,8 +365,8 @@ public class WaarpPassword {
     }
 
     /**
-     * @param cryptedPassword
-     *            the cryptedPassword to set
+     * @param cryptedPassword the cryptedPassword to set
+     *
      * @throws Exception
      */
     public void setCryptedPassword(String cryptedPassword) throws Exception {
@@ -389,6 +385,7 @@ public class WaarpPassword {
      * Set the new password and its crypted value
      *
      * @param passwd
+     *
      * @throws Exception
      */
     public void setClearPassword(String passwd) throws Exception {

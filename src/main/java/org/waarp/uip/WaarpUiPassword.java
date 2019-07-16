@@ -22,6 +22,7 @@ package org.waarp.uip;
 import org.waarp.common.crypto.Blowfish;
 import org.waarp.common.crypto.Des;
 import org.waarp.common.exception.CryptoException;
+import org.waarp.common.utility.DetectionUtils;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
